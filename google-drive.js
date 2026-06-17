@@ -83,7 +83,10 @@ function maybeEnableLogin() {
 
     if (isLoggedIn && !silentLoginTried) {
       silentLoginTried = true;
-      tokenClient.requestAccessToken({ prompt: "" });
+      tokenClient.requestAccessToken({
+      prompt: "",
+      hint: localStorage.getItem("weddingGoogleEmail") || ""
+    });
     }
   }
 }
