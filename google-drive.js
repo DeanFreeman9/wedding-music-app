@@ -3,16 +3,13 @@ const CLIENT_ID = "82508160992-srcf72ap43hvpetp2akgdffk765i1ckv.apps.googleuserc
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
 // Paste your shared Google Drive folder ID here.
-// Example folder URL:
-// https://drive.google.com/drive/folders/1AbCDefG123456789
-// Folder ID is the bit after /folders/
-const SHARED_FOLDER_ID = "1pXwAB8yExMw1HOf0zolg0BDo3iaeQCOS";
-
-let isLoggedIn = localStorage.getItem("weddingLoggedIn") === "true";
+const SHARED_FOLDER_ID = "PASTE_SHARED_FOLDER_ID_HERE";
 
 let tokenClient;
 let gapiReady = false;
 let gisReady = false;
+let isLoggedIn = localStorage.getItem("weddingLoggedIn") === "true";
+let silentLoginTried = false;
 
 let weddingFolderId = null;
 let playlistFileId = null;
@@ -44,9 +41,13 @@ window.addEventListener("load", () => {
     callback: async tokenResponse => {
       if (tokenResponse.error) {
         console.error(tokenResponse);
-        alert("Google sign in failed.");
+        localStorage.removeItem("weddingLoggedIn");
+        status.textContent = "Please sign in again.";
         return;
       }
+
+      localStorage.setItem("weddingLoggedIn", "true");
+      isLoggedIn = true;
 
       status.textContent = "Signed in. Loading Drive...";
 
@@ -79,6 +80,11 @@ function maybeEnableLogin() {
   if (gapiReady && gisReady) {
     loginBtn.disabled = false;
     status.textContent = "Ready to sign in.";
+
+    if (isLoggedIn && !silentLoginTried) {
+      silentLoginTried = true;
+      tokenClient.requestAccessToken({ prompt: "" });
+    }
   }
 }
 
@@ -279,3 +285,27 @@ async function getDriveAudioUrl(fileId) {
   const blob = await response.blob();
   return URL.createObjectURL(blob);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  if (!logoutBtn) return;
+
+  logoutBtn.addEventListener("click", () => {
+    const token = gapi.client.getToken();
+
+    if (token && token.access_token) {
+      google.accounts.oauth2.revoke(token.access_token);
+      gapi.client.setToken("");
+    }
+
+    localStorage.removeItem("weddingLoggedIn");
+    isLoggedIn = false;
+    silentLoginTried = false;
+
+    document.getElementById("appScreen").classList.add("hidden");
+    document.getElementById("loginScreen").classList.remove("hidden");
+
+    document.getElementById("status").textContent = "Logged out.";
+  });
+});
