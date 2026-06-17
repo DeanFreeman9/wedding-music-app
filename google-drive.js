@@ -8,6 +8,8 @@ const SCOPES = "https://www.googleapis.com/auth/drive.file";
 // Folder ID is the bit after /folders/
 const SHARED_FOLDER_ID = "PASTE_SHARED_FOLDER_ID_HERE";
 
+let isLoggedIn = localStorage.getItem("weddingLoggedIn") === "true";
+
 let tokenClient;
 let gapiReady = false;
 let gisReady = false;
