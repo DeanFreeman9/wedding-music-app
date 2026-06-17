@@ -8,6 +8,7 @@ const SHARED_FOLDER_ID = "PASTE_SHARED_FOLDER_ID_HERE";
 let tokenClient;
 let gapiReady = false;
 let gisReady = false;
+
 let isLoggedIn = localStorage.getItem("weddingLoggedIn") === "true";
 let silentLoginTried = false;
 
@@ -41,8 +42,13 @@ window.addEventListener("load", () => {
     callback: async tokenResponse => {
       if (tokenResponse.error) {
         console.error(tokenResponse);
+
         localStorage.removeItem("weddingLoggedIn");
-        status.textContent = "Please sign in again.";
+        isLoggedIn = false;
+
+        status.textContent = "Reconnect Google Drive";
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Reconnect Google Drive";
         return;
       }
 
@@ -77,18 +83,31 @@ function maybeEnableLogin() {
   const loginBtn = document.getElementById("loginBtn");
   const status = document.getElementById("status");
 
-  if (gapiReady && gisReady) {
-    loginBtn.disabled = false;
-    status.textContent = "Ready to sign in.";
+  if (!gapiReady || !gisReady) return;
 
-    if (isLoggedIn && !silentLoginTried) {
-      silentLoginTried = true;
-      tokenClient.requestAccessToken({
+  loginBtn.disabled = false;
+
+  if (isLoggedIn && !silentLoginTried) {
+    silentLoginTried = true;
+
+    loginBtn.textContent = "Reconnect Google Drive";
+    status.textContent = "Restoring Google Drive connection...";
+
+    tokenClient.requestAccessToken({
       prompt: "",
       hint: localStorage.getItem("weddingGoogleEmail") || ""
     });
-    }
+
+    return;
   }
+
+  loginBtn.textContent = isLoggedIn
+    ? "Reconnect Google Drive"
+    : "Sign In With Google";
+
+  status.textContent = isLoggedIn
+    ? "Reconnect Google Drive if needed."
+    : "Ready to sign in.";
 }
 
 async function setupDrive() {
@@ -309,6 +328,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("appScreen").classList.add("hidden");
     document.getElementById("loginScreen").classList.remove("hidden");
 
-    document.getElementById("status").textContent = "Logged out.";
+    const loginBtn = document.getElementById("loginBtn");
+    const status = document.getElementById("status");
+
+    loginBtn.textContent = "Sign In With Google";
+    status.textContent = "Logged out.";
   });
 });
