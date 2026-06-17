@@ -48,6 +48,12 @@ let audioContext = null;
 let audioSource = null;
 let gainNode = null;
 
+const playIcon = '<span class="material-symbols-rounded">play_arrow</span>';
+const pauseIcon = '<span class="material-symbols-rounded">pause</span>';
+const deleteIcon = '<span class="material-symbols-rounded">delete</span>';
+const dragIcon = '<span class="material-symbols-rounded">drag_indicator</span>';
+const lockIcon = '<span class="material-symbols-rounded">lock</span>';
+
 document.addEventListener("drive-ready", async () => {
   const data = await loadPlaylistDataFromDrive();
 
@@ -138,7 +144,7 @@ function renderSettingsPlaylists() {
     row.draggable = category !== "Speeches";
 
     row.innerHTML = `
-      <span class="settings-drag">${category === "Speeches" ? "🔒" : "☰"}</span>
+      <span class="settings-drag">${category === "Speeches" ? lockIcon : dragIcon}</span>
       <span>${category}</span>
       ${category !== "Speeches" ? `<button class="remove-playlist">Remove</button>` : ""}
     `;
@@ -149,7 +155,9 @@ function renderSettingsPlaylists() {
       }
     });
 
-    row.addEventListener("dragover", e => e.preventDefault());
+    row.addEventListener("dragover", e => {
+      e.preventDefault();
+    });
 
     row.addEventListener("drop", async () => {
       if (draggedPlaylistIndex === null || index === 0) return;
@@ -258,27 +266,21 @@ function renderSongs() {
             <strong>${song.title}</strong>
             <span>${getSongTitleFromFile(song.fileName)} (${song.duration})</span>
           </div>
-          <button class="remove-x"><span class="material-symbols-outlined">
-close
-</span></button>
+          <button class="remove-x">${deleteIcon}</button>
         `;
       } else {
         item.innerHTML = `
-          <span class="drag"><span class="material-symbols-outlined">
-menu
-</span></span>
+          <span class="drag">${dragIcon}</span>
           <div class="song-info">
             <strong>${getSongTitleFromFile(song.fileName)}</strong>
             <span>${song.duration}</span>
           </div>
-          <button class="remove-x"><span class="material-symbols-outlined">
-close
-</span></button>
+          <button class="remove-x">${deleteIcon}</button>
         `;
       }
 
       item.addEventListener("click", e => {
-        if (e.target.classList.contains("remove-x")) {
+        if (e.target.closest(".remove-x")) {
           removeSong(realIndex);
           return;
         }
@@ -393,9 +395,7 @@ async function playSong(index) {
       ? `${getSongTitleFromFile(song.fileName)} (${song.duration})`
       : song.duration;
 
-  playPause.textContent = <span class="material-symbols-outlined">
-pause
-</span>;
+  playPause.innerHTML = pauseIcon;
 }
 
 addBtn.addEventListener("click", () => {
@@ -453,13 +453,13 @@ playPause.addEventListener("click", async () => {
   if (player.paused) {
     try {
       await player.play();
-      playPause.innerHTML = '<span class="material-symbols-rounded">pause</span>';
+      playPause.innerHTML = pauseIcon;
     } catch (error) {
       console.log("Playback error:", error);
     }
   } else {
     player.pause();
-    playPause.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
+    playPause.innerHTML = playIcon;
   }
 });
 
@@ -533,7 +533,7 @@ fadeOutBtn.addEventListener("click", async () => {
       }
 
       fadeOutBtn.textContent = "Fade Out";
-      playPause.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
+      playPause.innerHTML = playIcon;
     }
   }, stepTime);
 });
@@ -553,7 +553,7 @@ progress.addEventListener("input", () => {
 });
 
 player.addEventListener("ended", () => {
-  playPause.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
+  playPause.innerHTML = playIcon;
 
   if (currentCategory !== "Speeches") {
     moveSong(1);
