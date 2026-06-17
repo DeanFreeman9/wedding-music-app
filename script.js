@@ -42,6 +42,7 @@ let currentIndex = -1;
 let draggedIndex = null;
 let draggedPlaylistIndex = null;
 let fadeTimeout = null;
+let volumeFadeInterval = null;
 
 let audioContext = null;
 let audioSource = null;
@@ -322,21 +323,33 @@ async function playSong(index) {
   const audioUrl = await getDriveAudioUrl(song.driveFileId);
 
   clearTimeout(fadeTimeout);
+  clearInterval(volumeFadeInterval);
+
   fadeOutBtn.textContent = "Fade Out";
 
   player.src = audioUrl;
+  player.volume = 1;
 
-  setupAudioFade();
+  try {
+    setupAudioFade();
 
-  if (audioContext.state === "suspended") {
-    await audioContext.resume();
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
+    gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+    gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+  } catch (error) {
+    console.log("Web Audio setup failed, using volume fallback:", error);
   }
 
-  gainNode.gain.cancelScheduledValues(audioContext.currentTime);
-  gainNode.gain.setValueAtTime(1, audioContext.currentTime);
-
   player.currentTime = 0;
-  await player.play();
+
+  try {
+    await player.play();
+  } catch (error) {
+    console.log("Playback error:", error);
+  }
 
   nowTitle.textContent =
     song.category === "Speeches" ? song.title : getSongTitleFromFile(song.fileName);
@@ -387,15 +400,23 @@ tabsRight.addEventListener("click", () => {
 playPause.addEventListener("click", async () => {
   if (!player.src) return;
 
-  setupAudioFade();
+  try {
+    setupAudioFade();
 
-  if (audioContext.state === "suspended") {
-    await audioContext.resume();
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+  } catch (error) {
+    console.log("Audio context not available:", error);
   }
 
   if (player.paused) {
-    await player.play();
-    playPause.textContent = "Ⅱ";
+    try {
+      await player.play();
+      playPause.textContent = "Ⅱ";
+    } catch (error) {
+      console.log("Playback error:", error);
+    }
   } else {
     player.pause();
     playPause.textContent = "▶";
@@ -417,37 +438,65 @@ function moveSong(direction) {
   playSong(currentIndex);
 }
 
-fadeOutBtn.addEventListener("click", () => {
+fadeOutBtn.addEventListener("click", async () => {
   if (!player.src || player.paused) return;
 
-  setupAudioFade();
-
-  if (audioContext.state === "suspended") {
-    audioContext.resume();
-  }
-
   clearTimeout(fadeTimeout);
+  clearInterval(volumeFadeInterval);
 
-  const fadeDurationSeconds = Number(fadeTime.value) / 1000;
-  const now = audioContext.currentTime;
-  const currentGain = gainNode.gain.value;
+  const fadeDurationMs = Number(fadeTime.value);
+  const fadeDurationSeconds = fadeDurationMs / 1000;
 
   fadeOutBtn.textContent = `Fading ${fadeDurationSeconds}s...`;
 
-  gainNode.gain.cancelScheduledValues(now);
-  gainNode.gain.setValueAtTime(currentGain, now);
-  gainNode.gain.linearRampToValueAtTime(0.0001, now + fadeDurationSeconds);
+  try {
+    setupAudioFade();
+
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
+    const now = audioContext.currentTime;
+    const currentGain = gainNode.gain.value || 1;
+
+    gainNode.gain.cancelScheduledValues(now);
+    gainNode.gain.setValueAtTime(currentGain, now);
+    gainNode.gain.linearRampToValueAtTime(0.001, now + fadeDurationSeconds);
+  } catch (error) {
+    console.log("Web Audio fade failed, using fallback:", error);
+  }
+
+  const startVolume = player.volume || 1;
+  const steps = 50;
+  let currentStep = 0;
+  const stepTime = fadeDurationMs / steps;
+
+  volumeFadeInterval = setInterval(() => {
+    currentStep++;
+
+    const newVolume = Math.max(0, startVolume * (1 - currentStep / steps));
+    player.volume = newVolume;
+
+    if (currentStep >= steps) {
+      clearInterval(volumeFadeInterval);
+    }
+  }, stepTime);
 
   fadeTimeout = setTimeout(() => {
+    clearInterval(volumeFadeInterval);
+
     player.pause();
     player.currentTime = 0;
+    player.volume = 1;
 
-    gainNode.gain.cancelScheduledValues(audioContext.currentTime);
-    gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+    if (gainNode && audioContext) {
+      gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+      gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+    }
 
     fadeOutBtn.textContent = "Fade Out";
     playPause.textContent = "▶";
-  }, fadeDurationSeconds * 1000);
+  }, fadeDurationMs);
 });
 
 player.addEventListener("timeupdate", () => {
