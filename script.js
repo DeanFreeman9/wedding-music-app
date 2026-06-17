@@ -314,7 +314,7 @@ async function playSong(index) {
     ? `${getSongTitleFromFile(song.fileName)} (${song.duration})`
     : song.duration;
 
-  playPause.textContent = "⏸";
+  playPause.textContent = "Ⅱ";
 }
 
 addBtn.addEventListener("click", () => {
