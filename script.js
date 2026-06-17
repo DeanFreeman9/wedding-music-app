@@ -258,16 +258,22 @@ function renderSongs() {
             <strong>${song.title}</strong>
             <span>${getSongTitleFromFile(song.fileName)} (${song.duration})</span>
           </div>
-          <button class="remove-x">X</button>
+          <button class="remove-x"><span class="material-symbols-outlined">
+close
+</span></button>
         `;
       } else {
         item.innerHTML = `
-          <span class="drag">☰</span>
+          <span class="drag"><span class="material-symbols-outlined">
+menu
+</span></span>
           <div class="song-info">
             <strong>${getSongTitleFromFile(song.fileName)}</strong>
             <span>${song.duration}</span>
           </div>
-          <button class="remove-x">X</button>
+          <button class="remove-x"><span class="material-symbols-outlined">
+close
+</span></button>
         `;
       }
 
@@ -447,13 +453,13 @@ playPause.addEventListener("click", async () => {
   if (player.paused) {
     try {
       await player.play();
-      playPause.textContent = "Ⅱ";
+      playPause.innerHTML = '<span class="material-symbols-rounded">pause</span>';
     } catch (error) {
       console.log("Playback error:", error);
     }
   } else {
     player.pause();
-    playPause.textContent = "▶";
+    playPause.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
   }
 });
 
@@ -527,7 +533,7 @@ fadeOutBtn.addEventListener("click", async () => {
       }
 
       fadeOutBtn.textContent = "Fade Out";
-      playPause.textContent = "▶";
+      playPause.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
     }
   }, stepTime);
 });
@@ -547,7 +553,7 @@ progress.addEventListener("input", () => {
 });
 
 player.addEventListener("ended", () => {
-  playPause.textContent = "▶";
+  playPause.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
 
   if (currentCategory !== "Speeches") {
     moveSong(1);
