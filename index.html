@@ -8,12 +8,13 @@
 
   <link rel="stylesheet" href="style.css">
 
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
+    rel="stylesheet"
+  >
+
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://apis.google.com/js/api.js"></script>
-  <link
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
-  rel="stylesheet"
-/>
 </head>
 
 <body>
@@ -31,23 +32,17 @@
 <div id="appScreen" class="app hidden">
 
   <header class="header-wrap">
-    <button id="tabsLeft" class="tabs-arrow"><span class="material-symbols-rounded">
-        skip_previous
-      </span></button>
+    <button id="tabsLeft" class="tabs-arrow">‹</button>
     <div id="tabsHeader"></div>
-    <button id="tabsRight" class="tabs-arrow"><span class="material-symbols-rounded">
-        skip_next
-      </span></button>
-    
+    <button id="tabsRight" class="tabs-arrow">›</button>
+
     <button id="settingsBtn" class="settings-btn">
-      <span class="material-symbols-rounded">
-        settings
-      </span>
+      <span class="material-symbols-rounded">settings</span>
     </button>
-    
-    <button id="addBtn"><span class="material-symbols-outlined">
-add
-</span></button>
+
+    <button id="addBtn">
+      <span class="material-symbols-rounded">add</span>
+    </button>
   </header>
 
   <main id="songList"></main>
@@ -82,15 +77,17 @@ add
     <p id="nowFile">Choose a song</p>
 
     <div class="controls">
-      <button id="prev"><span class="material-symbols-rounded">
-        skip_previous
-      </span></button>
-      <button id="playPause"><span class="material-symbols-outlined">
-play_arrow
-</span></button>
-      <button id="next"><span class="material-symbols-rounded">
-        skip_next
-      </span></button>
+      <button id="prev">
+        <span class="material-symbols-rounded">skip_previous</span>
+      </button>
+
+      <button id="playPause">
+        <span class="material-symbols-rounded">play_arrow</span>
+      </button>
+
+      <button id="next">
+        <span class="material-symbols-rounded">skip_next</span>
+      </button>
     </div>
 
     <div class="fade-row">
