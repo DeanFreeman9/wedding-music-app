@@ -1,0 +1,312 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #333;
+  font-family: Arial, sans-serif;
+  color: white;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #1f1f1f;
+  text-align: center;
+}
+
+.login-screen h1 {
+  font-size: 34px;
+}
+
+#loginBtn {
+  background: #00f5b8;
+  color: black;
+  border: none;
+  padding: 18px 34px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.app {
+  max-width: 430px;
+  margin: auto;
+  min-height: 100vh;
+  background: #1f1f1f;
+  padding: 18px;
+  padding-bottom: 315px;
+}
+
+.header-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 25px;
+  height: 46px;
+}
+
+#tabsHeader {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+#tabsHeader::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.tab.active {
+  border-bottom: 3px solid #00f5b8;
+}
+
+.tabs-arrow,
+.settings-btn {
+  width: 24px;
+  min-width: 24px;
+  height: 46px;
+  border: none;
+  background: transparent;
+  color: #00f5b8;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 0;
+}
+
+#addBtn {
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #00f5b8;
+  color: black;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.song-card,
+.song-row {
+  width: 100%;
+  margin-bottom: 12px;
+  background: #00f5b8;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  min-height: 82px;
+}
+
+.song-info {
+  flex: 1;
+}
+
+.song-card .song-info strong,
+.song-row .song-info strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.song-card .song-info span,
+.song-row .song-info span {
+  display: block;
+  font-size: 12px;
+  margin-top: 5px;
+  opacity: 0.85;
+}
+
+.drag {
+  font-size: 22px;
+  cursor: grab;
+}
+
+.remove-x {
+  background: none;
+  border: none;
+  color: red;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.panel {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  max-width: 430px;
+  width: 100%;
+  background: #292929;
+  padding: 20px;
+  border-radius: 22px 22px 0 0;
+  z-index: 20;
+}
+
+.panel input,
+.panel select,
+.panel button {
+  width: 100%;
+  padding: 14px;
+  margin: 6px 0;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+}
+
+#addSong,
+#settingsAddPlaylist {
+  background: #00f5b8;
+  color: black;
+}
+
+#closeAdd,
+#closeSettings {
+  background: #555;
+  color: white;
+}
+
+.settings-playlist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1f1f1f;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.settings-playlist-row span:nth-child(2) {
+  flex: 1;
+  font-weight: bold;
+}
+
+.settings-drag {
+  width: 24px;
+  color: #00f5b8;
+  cursor: grab;
+}
+
+.settings-playlist-row button {
+  width: auto;
+  padding: 8px 12px;
+  background: #b00020;
+  color: white;
+}
+
+footer {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  max-width: 430px;
+  width: 100%;
+  background: #1f1f1f;
+  padding: 22px;
+}
+
+footer h3 {
+  display: inline-block;
+  margin: 0 0 8px;
+  border-bottom: 3px solid #00f5b8;
+  padding-bottom: 8px;
+}
+
+#nowTitle {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+#nowFile {
+  font-size: 12px;
+  margin: 0 0 14px;
+  font-weight: bold;
+  opacity: 0.8;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.controls button {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: #00f5b8;
+  color: black;
+  font-size: 23px;
+  font-weight: bold;
+}
+
+.fade-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+#fadeOutBtn {
+  flex: 1;
+  border: none;
+  border-radius: 12px;
+  background: #ff9800;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 14px;
+}
+
+#fadeTime {
+  width: 105px;
+  border: none;
+  border-radius: 12px;
+  background: #333;
+  color: white;
+  font-weight: bold;
+  padding: 14px;
+}
+
+#progress {
+  width: 100%;
+  margin-top: 20px;
+  accent-color: #00f5b8;
+}
+
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}

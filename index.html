@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Wedding Music App</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+</head>
+
+<body>
+
+<div id="loginScreen" class="login-screen">
+  <h1>Wedding Music App</h1>
+
+  <button id="loginBtn" disabled>
+    Sign In With Google
+  </button>
+
+  <p id="status">Loading Google...</p>
+</div>
+
+<div id="appScreen" class="app hidden">
+
+  <header class="header-wrap">
+    <button id="tabsLeft" class="tabs-arrow">‹</button>
+    <div id="tabsHeader"></div>
+    <button id="tabsRight" class="tabs-arrow">›</button>
+    <button id="settingsBtn" class="settings-btn">⚙</button>
+    <button id="addBtn">+</button>
+  </header>
+
+  <main id="songList"></main>
+
+  <section id="addPanel" class="panel hidden">
+    <h2 id="addPanelTitle">Add Music</h2>
+
+    <input id="titleInput" placeholder="Button text e.g. Dean Speech">
+
+    <select id="categoryInput"></select>
+
+    <input id="fileInput" type="file" accept="audio/*" multiple>
+
+    <button id="addSong">Add</button>
+    <button id="closeAdd">Cancel</button>
+  </section>
+
+  <section id="settingsPanel" class="panel hidden">
+    <h2>Playlist Settings</h2>
+
+    <input id="settingsPlaylistName" placeholder="New playlist name">
+    <button id="settingsAddPlaylist">Add Playlist</button>
+
+    <div id="settingsPlaylistList"></div>
+
+    <button id="closeSettings">Close</button>
+  </section>
+
+  <footer>
+    <h3>Now Playing</h3>
+    <p id="nowTitle">Nothing Playing</p>
+    <p id="nowFile">Choose a song</p>
+
+    <div class="controls">
+      <button id="prev">⏮</button>
+      <button id="playPause">▶</button>
+      <button id="next">⏭</button>
+    </div>
+
+    <div class="fade-row">
+      <button id="fadeOutBtn">Fade Out</button>
+      <select id="fadeTime">
+        <option value="3000">3 sec</option>
+        <option value="5000" selected>5 sec</option>
+        <option value="8000">8 sec</option>
+        <option value="10000">10 sec</option>
+      </select>
+    </div>
+
+    <input id="progress" type="range" min="0" max="100" value="0">
+
+    <div class="time-row">
+      <span id="currentTime">00:00</span>
+      <span id="duration">00:00</span>
+    </div>
+  </footer>
+
+</div>
+
+<audio id="player"></audio>
+
+<script src="google-drive.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
