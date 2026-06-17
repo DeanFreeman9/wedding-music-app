@@ -76,7 +76,9 @@ async function setupDrive() {
 async function getOrCreateFolder(folderName) {
   const response = await gapi.client.drive.files.list({
     q: `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`,
-    fields: "files(id,name)"
+    fields: "files(id,name)",
+    includeItemsFromAllDrives: true,
+    supportsAllDrives: true
   });
 
   if (response.result.files.length > 0) {
@@ -97,7 +99,9 @@ async function getOrCreateFolder(folderName) {
 async function getOrCreatePlaylistFile() {
   const response = await gapi.client.drive.files.list({
     q: `'${weddingFolderId}' in parents and name='${PLAYLIST_FILE_NAME}' and trashed=false`,
-    fields: "files(id,name)"
+    fields: "files(id,name)",
+    includeItemsFromAllDrives: true,
+    supportsAllDrives: true
   });
 
   if (response.result.files.length > 0) {
