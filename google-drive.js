@@ -6,7 +6,7 @@ const SCOPES = "https://www.googleapis.com/auth/drive.file";
 // Example folder URL:
 // https://drive.google.com/drive/folders/1AbCDefG123456789
 // Folder ID is the bit after /folders/
-const SHARED_FOLDER_ID = "PASTE_SHARED_FOLDER_ID_HERE";
+const SHARED_FOLDER_ID = "1pXwAB8yExMw1HOf0zolg0BDo3iaeQCOS";
 
 let isLoggedIn = localStorage.getItem("weddingLoggedIn") === "true";
 
