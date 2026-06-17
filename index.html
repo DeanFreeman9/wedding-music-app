@@ -31,11 +31,23 @@
 <div id="appScreen" class="app hidden">
 
   <header class="header-wrap">
-    <button id="tabsLeft" class="tabs-arrow">‹</button>
+    <button id="tabsLeft" class="tabs-arrow"><span class="material-symbols-rounded">
+        skip_previous
+      </span></button>
     <div id="tabsHeader"></div>
-    <button id="tabsRight" class="tabs-arrow">›</button>
-    <button id="settingsBtn" class="settings-btn">⚙︎</button>
-    <button id="addBtn">+</button>
+    <button id="tabsRight" class="tabs-arrow"><span class="material-symbols-rounded">
+        skip_next
+      </span></button>
+    
+    <button id="settingsBtn" class="settings-btn">
+      <span class="material-symbols-rounded">
+        settings
+      </span>
+    </button>
+    
+    <button id="addBtn"><span class="material-symbols-outlined">
+add
+</span></button>
   </header>
 
   <main id="songList"></main>
@@ -70,9 +82,15 @@
     <p id="nowFile">Choose a song</p>
 
     <div class="controls">
-      <button id="prev">⏴</button>
-      <button id="playPause">▶</button>
-      <button id="next">⏵</button>
+      <button id="prev"><span class="material-symbols-rounded">
+        skip_previous
+      </span></button>
+      <button id="playPause"><span class="material-symbols-outlined">
+play_arrow
+</span></button>
+      <button id="next"><span class="material-symbols-rounded">
+        skip_next
+      </span></button>
     </div>
 
     <div class="fade-row">
