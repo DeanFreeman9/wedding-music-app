@@ -54,7 +54,10 @@ document.addEventListener("drive-ready", async () => {
   playlistOrder = data.playlistOrder || playlistOrder;
   songs = data.songs || [];
 
-  if (!playlistOrder.includes("Speeches")) playlistOrder.unshift("Speeches");
+  if (!playlistOrder.includes("Speeches")) {
+    playlistOrder.unshift("Speeches");
+  }
+
   playlistOrder = ["Speeches", ...playlistOrder.filter(p => p !== "Speeches")];
 
   renderTabs();
@@ -81,6 +84,20 @@ function setupAudioFade() {
   gainNode.connect(audioContext.destination);
 
   gainNode.gain.value = 1;
+}
+
+function resetFade() {
+  clearTimeout(fadeTimeout);
+  clearInterval(volumeFadeInterval);
+
+  player.volume = 1;
+
+  if (gainNode && audioContext) {
+    gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+    gainNode.gain.value = 1;
+  }
+
+  fadeOutBtn.textContent = "Fade Out";
 }
 
 function renderTabs() {
@@ -127,7 +144,9 @@ function renderSettingsPlaylists() {
     `;
 
     row.addEventListener("dragstart", () => {
-      if (category !== "Speeches") draggedPlaylistIndex = index;
+      if (category !== "Speeches") {
+        draggedPlaylistIndex = index;
+      }
     });
 
     row.addEventListener("dragover", e => e.preventDefault());
@@ -158,7 +177,9 @@ function renderSettingsPlaylists() {
         playlistOrder = playlistOrder.filter(p => p !== category);
         songs = songs.filter(song => song.category !== category);
 
-        if (currentCategory === category) currentCategory = "Speeches";
+        if (currentCategory === category) {
+          currentCategory = "Speeches";
+        }
 
         await saveData();
 
@@ -197,8 +218,10 @@ function getSongTitleFromFile(fileName) {
 
 function formatTime(seconds) {
   if (!seconds || isNaN(seconds)) return "00:00";
+
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
+
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
@@ -211,66 +234,75 @@ async function getAudioDuration(file) {
       resolve(formatTime(audio.duration));
     });
 
-    audio.addEventListener("error", () => resolve("00:00"));
+    audio.addEventListener("error", () => {
+      resolve("00:00");
+    });
   });
 }
 
 function renderSongs() {
   songList.innerHTML = "";
 
-  songs.filter(song => song.category === currentCategory).forEach(song => {
-    const realIndex = songs.indexOf(song);
-    const item = document.createElement("div");
+  songs
+    .filter(song => song.category === currentCategory)
+    .forEach(song => {
+      const realIndex = songs.indexOf(song);
+      const item = document.createElement("div");
 
-    item.draggable = true;
-    item.className = currentCategory === "Speeches" ? "song-card" : "song-row";
+      item.draggable = true;
+      item.className = currentCategory === "Speeches" ? "song-card" : "song-row";
 
-    if (currentCategory === "Speeches") {
-      item.innerHTML = `
-        <div class="song-info">
-          <strong>${song.title}</strong>
-          <span>${getSongTitleFromFile(song.fileName)} (${song.duration})</span>
-        </div>
-        <button class="remove-x">X</button>
-      `;
-    } else {
-      item.innerHTML = `
-        <span class="drag">☰</span>
-        <div class="song-info">
-          <strong>${getSongTitleFromFile(song.fileName)}</strong>
-          <span>${song.duration}</span>
-        </div>
-        <button class="remove-x">X</button>
-      `;
-    }
-
-    item.addEventListener("click", e => {
-      if (e.target.classList.contains("remove-x")) {
-        removeSong(realIndex);
-        return;
+      if (currentCategory === "Speeches") {
+        item.innerHTML = `
+          <div class="song-info">
+            <strong>${song.title}</strong>
+            <span>${getSongTitleFromFile(song.fileName)} (${song.duration})</span>
+          </div>
+          <button class="remove-x">X</button>
+        `;
+      } else {
+        item.innerHTML = `
+          <span class="drag">☰</span>
+          <div class="song-info">
+            <strong>${getSongTitleFromFile(song.fileName)}</strong>
+            <span>${song.duration}</span>
+          </div>
+          <button class="remove-x">X</button>
+        `;
       }
 
-      currentIndex = realIndex;
-      playSong(currentIndex);
+      item.addEventListener("click", e => {
+        if (e.target.classList.contains("remove-x")) {
+          removeSong(realIndex);
+          return;
+        }
+
+        currentIndex = realIndex;
+        playSong(currentIndex);
+      });
+
+      item.addEventListener("dragstart", () => {
+        draggedIndex = realIndex;
+      });
+
+      item.addEventListener("dragover", e => {
+        e.preventDefault();
+      });
+
+      item.addEventListener("drop", async () => {
+        if (draggedIndex === null || draggedIndex === realIndex) return;
+
+        const moved = songs.splice(draggedIndex, 1)[0];
+        songs.splice(realIndex, 0, moved);
+
+        draggedIndex = null;
+
+        await saveData();
+        renderSongs();
+      });
+
+      songList.appendChild(item);
     });
-
-    item.addEventListener("dragstart", () => draggedIndex = realIndex);
-    item.addEventListener("dragover", e => e.preventDefault());
-
-    item.addEventListener("drop", async () => {
-      if (draggedIndex === null || draggedIndex === realIndex) return;
-
-      const moved = songs.splice(draggedIndex, 1)[0];
-      songs.splice(realIndex, 0, moved);
-
-      draggedIndex = null;
-
-      await saveData();
-      renderSongs();
-    });
-
-    songList.appendChild(item);
-  });
 }
 
 async function removeSong(index) {
@@ -322,13 +354,11 @@ async function playSong(index) {
 
   const audioUrl = await getDriveAudioUrl(song.driveFileId);
 
-  clearTimeout(fadeTimeout);
-  clearInterval(volumeFadeInterval);
-
-  fadeOutBtn.textContent = "Fade Out";
+  resetFade();
 
   player.src = audioUrl;
   player.volume = 1;
+  player.currentTime = 0;
 
   try {
     setupAudioFade();
@@ -338,12 +368,10 @@ async function playSong(index) {
     }
 
     gainNode.gain.cancelScheduledValues(audioContext.currentTime);
-    gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+    gainNode.gain.value = 1;
   } catch (error) {
-    console.log("Web Audio setup failed, using volume fallback:", error);
+    console.log("Web Audio setup failed:", error);
   }
-
-  player.currentTime = 0;
 
   try {
     await player.play();
@@ -380,14 +408,18 @@ addBtn.addEventListener("click", () => {
   addPanel.classList.remove("hidden");
 });
 
-closeAdd.addEventListener("click", () => addPanel.classList.add("hidden"));
+closeAdd.addEventListener("click", () => {
+  addPanel.classList.add("hidden");
+});
 
 settingsBtn.addEventListener("click", () => {
   addPanel.classList.add("hidden");
   settingsPanel.classList.remove("hidden");
 });
 
-closeSettings.addEventListener("click", () => settingsPanel.classList.add("hidden"));
+closeSettings.addEventListener("click", () => {
+  settingsPanel.classList.add("hidden");
+});
 
 tabsLeft.addEventListener("click", () => {
   tabsHeader.scrollBy({ left: -150, behavior: "smooth" });
@@ -423,8 +455,13 @@ playPause.addEventListener("click", async () => {
   }
 });
 
-next.addEventListener("click", () => moveSong(1));
-prev.addEventListener("click", () => moveSong(-1));
+next.addEventListener("click", () => {
+  moveSong(1);
+});
+
+prev.addEventListener("click", () => {
+  moveSong(-1);
+});
 
 function moveSong(direction) {
   const list = songs.filter(song => song.category === currentCategory);
@@ -444,59 +481,53 @@ fadeOutBtn.addEventListener("click", async () => {
   clearTimeout(fadeTimeout);
   clearInterval(volumeFadeInterval);
 
-  const fadeDurationMs = Number(fadeTime.value);
-  const fadeDurationSeconds = fadeDurationMs / 1000;
-
-  fadeOutBtn.textContent = `Fading ${fadeDurationSeconds}s...`;
-
   try {
     setupAudioFade();
 
     if (audioContext.state === "suspended") {
       await audioContext.resume();
     }
-
-    const now = audioContext.currentTime;
-    const currentGain = gainNode.gain.value || 1;
-
-    gainNode.gain.cancelScheduledValues(now);
-    gainNode.gain.setValueAtTime(currentGain, now);
-    gainNode.gain.linearRampToValueAtTime(0.001, now + fadeDurationSeconds);
   } catch (error) {
-    console.log("Web Audio fade failed, using fallback:", error);
+    console.log("Audio fade setup failed:", error);
   }
 
-  const startVolume = player.volume || 1;
-  const steps = 50;
+  const fadeDurationMs = Number(fadeTime.value);
+  const steps = 40;
   let currentStep = 0;
+
+  fadeOutBtn.textContent = `Fading ${fadeDurationMs / 1000}s...`;
+
+  const startGain = gainNode ? gainNode.gain.value : 1;
+  const startVolume = player.volume || 1;
   const stepTime = fadeDurationMs / steps;
 
   volumeFadeInterval = setInterval(() => {
     currentStep++;
 
-    const newVolume = Math.max(0, startVolume * (1 - currentStep / steps));
-    player.volume = newVolume;
+    const fadeAmount = currentStep / steps;
+    const newLevel = Math.max(0, 1 - fadeAmount);
+
+    if (gainNode) {
+      gainNode.gain.value = startGain * newLevel;
+    }
+
+    player.volume = startVolume * newLevel;
 
     if (currentStep >= steps) {
       clearInterval(volumeFadeInterval);
+
+      player.pause();
+      player.currentTime = 0;
+      player.volume = 1;
+
+      if (gainNode) {
+        gainNode.gain.value = 1;
+      }
+
+      fadeOutBtn.textContent = "Fade Out";
+      playPause.textContent = "▶";
     }
   }, stepTime);
-
-  fadeTimeout = setTimeout(() => {
-    clearInterval(volumeFadeInterval);
-
-    player.pause();
-    player.currentTime = 0;
-    player.volume = 1;
-
-    if (gainNode && audioContext) {
-      gainNode.gain.cancelScheduledValues(audioContext.currentTime);
-      gainNode.gain.setValueAtTime(1, audioContext.currentTime);
-    }
-
-    fadeOutBtn.textContent = "Fade Out";
-    playPause.textContent = "▶";
-  }, fadeDurationMs);
 });
 
 player.addEventListener("timeupdate", () => {
