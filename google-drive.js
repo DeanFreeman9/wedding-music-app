@@ -2,6 +2,12 @@ const CLIENT_ID = "82508160992-srcf72ap43hvpetp2akgdffk765i1ckv.apps.googleuserc
 
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
+// Paste your shared Google Drive folder ID here.
+// Example folder URL:
+// https://drive.google.com/drive/folders/1AbCDefG123456789
+// Folder ID is the bit after /folders/
+const SHARED_FOLDER_ID = "PASTE_SHARED_FOLDER_ID_HERE";
+
 let tokenClient;
 let gapiReady = false;
 let gisReady = false;
@@ -41,12 +47,18 @@ window.addEventListener("load", () => {
       }
 
       status.textContent = "Signed in. Loading Drive...";
-      await setupDrive();
 
-      document.getElementById("loginScreen").classList.add("hidden");
-      document.getElementById("appScreen").classList.remove("hidden");
+      try {
+        await setupDrive();
 
-      document.dispatchEvent(new Event("drive-ready"));
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("appScreen").classList.remove("hidden");
+
+        document.dispatchEvent(new Event("drive-ready"));
+      } catch (error) {
+        console.error(error);
+        alert("Could not load shared Google Drive folder. Check folder sharing and folder ID.");
+      }
     }
   });
 
@@ -69,16 +81,27 @@ function maybeEnableLogin() {
 }
 
 async function setupDrive() {
-  weddingFolderId = await getOrCreateFolder(WEDDING_FOLDER_NAME);
+  weddingFolderId = await getSharedOrCreateFolder();
   playlistFileId = await getOrCreatePlaylistFile();
 }
 
-async function getOrCreateFolder(folderName) {
+async function getSharedOrCreateFolder() {
+  if (SHARED_FOLDER_ID && SHARED_FOLDER_ID !== "PASTE_SHARED_FOLDER_ID_HERE") {
+    const response = await gapi.client.drive.files.get({
+      fileId: SHARED_FOLDER_ID,
+      fields: "id,name,mimeType",
+      supportsAllDrives: true
+    });
+
+    return response.result.id;
+  }
+
   const response = await gapi.client.drive.files.list({
-    q: `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`,
+    q: `mimeType='application/vnd.google-apps.folder' and name='${WEDDING_FOLDER_NAME}' and trashed=false`,
     fields: "files(id,name)",
     includeItemsFromAllDrives: true,
-    supportsAllDrives: true
+    supportsAllDrives: true,
+    corpora: "allDrives"
   });
 
   if (response.result.files.length > 0) {
@@ -87,10 +110,11 @@ async function getOrCreateFolder(folderName) {
 
   const createResponse = await gapi.client.drive.files.create({
     resource: {
-      name: folderName,
+      name: WEDDING_FOLDER_NAME,
       mimeType: "application/vnd.google-apps.folder"
     },
-    fields: "id"
+    fields: "id",
+    supportsAllDrives: true
   });
 
   return createResponse.result.id;
@@ -101,7 +125,8 @@ async function getOrCreatePlaylistFile() {
     q: `'${weddingFolderId}' in parents and name='${PLAYLIST_FILE_NAME}' and trashed=false`,
     fields: "files(id,name)",
     includeItemsFromAllDrives: true,
-    supportsAllDrives: true
+    supportsAllDrives: true,
+    corpora: "allDrives"
   });
 
   if (response.result.files.length > 0) {
@@ -128,7 +153,7 @@ async function getOrCreatePlaylistFile() {
 
 async function loadPlaylistDataFromDrive() {
   const response = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${playlistFileId}?alt=media`,
+    `https://www.googleapis.com/drive/v3/files/${playlistFileId}?alt=media&supportsAllDrives=true`,
     {
       headers: {
         Authorization: `Bearer ${gapi.client.getToken().access_token}`
@@ -136,12 +161,16 @@ async function loadPlaylistDataFromDrive() {
     }
   );
 
+  if (!response.ok) {
+    throw new Error("Could not load playlists.json");
+  }
+
   return await response.json();
 }
 
 async function savePlaylistDataToDrive(data) {
-  await fetch(
-    `https://www.googleapis.com/upload/drive/v3/files/${playlistFileId}?uploadType=media`,
+  const response = await fetch(
+    `https://www.googleapis.com/upload/drive/v3/files/${playlistFileId}?uploadType=media&supportsAllDrives=true`,
     {
       method: "PATCH",
       headers: {
@@ -151,6 +180,10 @@ async function savePlaylistDataToDrive(data) {
       body: JSON.stringify(data, null, 2)
     }
   );
+
+  if (!response.ok) {
+    throw new Error("Could not save playlists.json");
+  }
 }
 
 async function uploadSongToDrive(file) {
@@ -208,7 +241,7 @@ async function uploadMultipartFile(metadata, content, mimeType) {
   }
 
   const response = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType",
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id,name,mimeType",
     {
       method: "POST",
       headers: {
@@ -219,18 +252,27 @@ async function uploadMultipartFile(metadata, content, mimeType) {
     }
   );
 
+  if (!response.ok) {
+    console.error(await response.text());
+    throw new Error("Upload failed");
+  }
+
   return await response.json();
 }
 
 async function getDriveAudioUrl(fileId) {
   const response = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`,
     {
       headers: {
         Authorization: `Bearer ${gapi.client.getToken().access_token}`
       }
     }
   );
+
+  if (!response.ok) {
+    throw new Error("Could not load audio file");
+  }
 
   const blob = await response.blob();
   return URL.createObjectURL(blob);
